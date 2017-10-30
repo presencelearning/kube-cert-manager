@@ -432,7 +432,7 @@ func (p *CertProcessor) processCertificate(cert Certificate) (processed bool, er
 	// Fetch acme user data and cert details from bolt
 	var userInfoRaw, certDetailsRaw []byte
 	err = p.db.View(func(tx *bolt.Tx) error {
-		userInfoRaw = tx.Bucket([]byte("user-info")).Get([]byte(cert.Spec.Domain))
+		userInfoRaw = tx.Bucket([]byte("user-info")).Get([]byte("acme-user"))
 		certDetailsRaw = tx.Bucket([]byte("cert-details")).Get([]byte(cert.Spec.Domain))
 		return nil
 	})
@@ -554,7 +554,8 @@ func (p *CertProcessor) processCertificate(cert Certificate) (processed bool, er
 	// Save cert details and user info to bolt
 	err = p.db.Update(func(tx *bolt.Tx) error {
 		key := []byte(cert.Spec.Domain)
-		tx.Bucket([]byte("user-info")).Put(key, userInfoRaw)
+		userkey := []byte("acme-user")
+		tx.Bucket([]byte("user-info")).Put(userkey, userInfoRaw)
 		tx.Bucket([]byte("cert-details")).Put(key, certDetailsRaw)
 		tx.Bucket([]byte("domain-altnames")).Put(key, altNamesRaw)
 		return nil
